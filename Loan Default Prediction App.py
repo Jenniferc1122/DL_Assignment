@@ -69,13 +69,12 @@ uploaded_file = st.file_uploader(
         type=["csv"]
     )
 
-    if uploaded_file:
+if uploaded_file:
 
-        df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(uploaded_file)
+    st.write(df.head())
 
-        st.write(df.head())
-
-        try:
+    try:
 
             df = apply_own_car_rule(df)
 
