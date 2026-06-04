@@ -4,6 +4,13 @@ import numpy as np
 import tensorflow as tf
 import joblib
 
+# Set page configuration for a professional wide layout
+st.set_page_config(
+    page_title="Loan Default Risk Analytics",
+    page_icon="🏦",
+    layout="wide"
+)
+
 # ==================================
 # Load artifacts
 # ==================================
@@ -49,20 +56,16 @@ def apply_own_car_rule(df):
 # UI
 # ==================================
 
-st.title("Loan Default Prediction")
+st.title("🏦 Loan Default Prediction Analytics")
 
-tab1, tab2 = st.tabs(
-    ["Upload CSV", "Manual Input"]
+st.markdown(
+    "Upload a customer portfolio CSV file below to instantly evaluate credit risk and default probabilities."
 )
+st.write("---")
 
-# ==================================
-# TAB 1
-# ==================================
-
-with tab1:
 
     uploaded_file = st.file_uploader(
-        "Upload customer data",
+        "Upload customer data file (CSV format)",
         type=["csv"]
     )
 
@@ -102,16 +105,55 @@ with tab1:
 
             result = result[front_cols + other_cols]
 
-            st.success("Prediction completed")
+        # ==================================
+        # Executive Summary Metrics Dashboard
+        # ==================================
+        st.subheader("📊 Portfolio Risk Summary")
+        
+        total_records = len(result)
+        risky_count = int(np.sum(preds == 1))
+        avg_prob = float(np.mean(probs))
 
-            st.dataframe(result)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric(label="Total Records Processed", value=f"{total_records:,}")
+        with col2:
+            st.metric(
+                label="High Risk Applications Detected", 
+                value=f"{risky_count:,}",
+                delta=f"{(risky_count/total_records)*100:.1f}% of portfolio",
+                delta_color="inverse"
+            )
+        with col3:
+            st.metric(label="Average Default Probability", value=f"{avg_prob:.2%}")
 
+        st.write("---")
+
+        # ==================================
+        # Detailed Analytics Section
+        # ==================================
+        st.subheader("🔍 Detailed Risk Assessment")
+        
+        # Action bar with download button aligned neatly
+        dl_col, space_col = st.columns([1, 4])
+        with dl_col:
             st.download_button(
-                "Download Results",
-                result.to_csv(index=False),
-                "predictions.csv"
+                label="📥 Download Results CSV",
+                data=result.to_csv(index=False),
+                file_name="loan_predictions.csv",
+                mime="text/csv",
+                use_container_width=True
             )
 
-        except Exception as e:
+        # Beautiful interactive dataframe with custom conditional stylings
+        st.dataframe(
+            result.style.format({"Default_Probability": "{:.2%}"})
+            .map(
+                lambda val: "background-color: rgba(239, 68, 68, 0.2); color: #ef4444; font-weight: bold;" if val == "Risky" else "",
+                subset=["Prediction"]
+            ),
+            use_container_width=True
+        )
 
-            st.error(str(e))
+    except Exception as e:
+        st.error(f"An error occurred during parsing: {str(e)}")
