@@ -49,7 +49,7 @@ def apply_own_car_rule(df):
 # UI / Header
 # ==================================
 
-st.title("🏦 Loan Default Prediction Analytics")
+st.title("🏦 Loan Default Prediction System")
 st.markdown(
     "Upload a customer portfolio CSV file below to instantly evaluate credit risk and default probabilities."
 )
