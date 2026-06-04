@@ -86,7 +86,7 @@ if uploaded_file is not None:
 elif st.session_state.use_sample:
     try:
         # Make sure "sample.csv" matches your file name in GitHub exactly
-        df = pd.read_csv("sample.csv") 
+        df = pd.read_csv("loan_trial.csv") 
     except FileNotFoundError:
         st.error("⚠️ 'sample.csv' could not be found in your repository root.")
 
