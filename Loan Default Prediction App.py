@@ -20,7 +20,7 @@ def load_artifacts():
     )
 
     meta = joblib.load(
-        "tuned_resnet_meta.joblib"
+        "tuned_resnet_meta-2.joblib"
     )
 
     return model, preprocessor, meta
