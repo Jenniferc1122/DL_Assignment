@@ -6,7 +6,7 @@ import joblib
 
 # Set page configuration for a professional wide layout
 st.set_page_config(
-    page_title="Loan Default Risk Analytics",
+    page_title="Loan Default Risk System",
     page_icon="🏦",
     layout="wide"
 )
