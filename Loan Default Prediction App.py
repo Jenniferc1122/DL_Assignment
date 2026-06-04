@@ -97,6 +97,11 @@ with tab1:
                 "Pays Regularly"
             )
 
+            front_cols = ["Default_Probability", "Prediction"]
+            other_cols = [col for col in result.columns if col not in front_cols]
+
+            result = result[front_cols + other_cols]
+
             st.success("Prediction completed")
 
             st.dataframe(result)
