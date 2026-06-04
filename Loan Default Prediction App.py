@@ -64,7 +64,7 @@ st.markdown(
 st.write("---")
 
 
-    uploaded_file = st.file_uploader(
+uploaded_file = st.file_uploader(
         "Upload customer data file (CSV format)",
         type=["csv"]
     )
