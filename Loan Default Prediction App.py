@@ -56,18 +56,45 @@ st.markdown(
 st.write("---")
 
 # ==================================
-# File Upload Section
+# Data Input Section
 # ==================================
 
-uploaded_file = st.file_uploader(
-    "Choose a customer data file (CSV format)",
-    type=["csv"],
-    help="Ensure columns match the training dataset schema before uploading."
-)
+# Initialize a session state variable to track if the sample button was clicked
+if "use_sample" not in st.session_state:
+    st.session_state.use_sample = False
 
-if uploaded_file:
-    # Read and preview data
+col_upload, col_sample = st.columns([3, 1], vertical_alignment="bottom")
+
+with col_upload:
+    uploaded_file = st.file_uploader(
+        "Choose a customer data file (CSV format)",
+        type=["csv"],
+        help="Ensure columns match the training dataset schema before uploading."
+    )
+
+with col_sample:
+    # Button to instantly load the repository file
+    if st.button("✨ Try with a Sample", use_container_width=True):
+        st.session_state.use_sample = True
+
+# Determine which data source to use
+df = None
+
+if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
+    st.session_state.use_sample = False  # Reset sample flag if they upload a file
+elif st.session_state.use_sample:
+    try:
+        # Make sure "sample.csv" matches your file name in GitHub exactly
+        df = pd.read_csv("sample.csv") 
+    except FileNotFoundError:
+        st.error("⚠️ 'sample.csv' could not be found in your repository root.")
+
+# ==================================
+# Prediction Pipeline Processing
+# ==================================
+
+if df is not None:
     
     with st.expander("📄 View Uploaded Raw Data Preview", expanded=False):
         st.dataframe(df, use_container_width=True)
@@ -126,7 +153,6 @@ if uploaded_file:
         # ==================================
         st.subheader("🔍 Detailed Risk Assessment")
         
-        # Action bar with download button aligned neatly
         dl_col, space_col = st.columns([1, 4])
         with dl_col:
             st.download_button(
@@ -137,7 +163,6 @@ if uploaded_file:
                 use_container_width=True
             )
 
-        # Beautiful interactive dataframe with custom conditional stylings
         st.dataframe(
             result.style.format({"Default_Probability": "{:.2%}"})
             .map(
