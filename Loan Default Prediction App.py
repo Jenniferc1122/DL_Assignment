@@ -99,7 +99,7 @@ with tab1:
 
             st.success("Prediction completed")
 
-            st.dataframe(result.head())
+            st.dataframe(result)
 
             st.download_button(
                 "Download Results",
