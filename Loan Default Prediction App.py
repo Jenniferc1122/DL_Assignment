@@ -17,23 +17,19 @@ st.set_page_config(
 
 @st.cache_resource
 def load_artifacts():
-
     model = tf.keras.models.load_model(
         "tuned_resnet_model.keras"
     )
-
     preprocessor = joblib.load(
         "preprocessor.joblib"
     )
-
     meta = joblib.load(
         "tuned_resnet_meta-2.joblib"
     )
-
     return model, preprocessor, meta
 
+# Load components
 model, preprocessor, meta = load_artifacts()
-
 threshold = meta["threshold"]
 
 # ==================================
@@ -41,68 +37,65 @@ threshold = meta["threshold"]
 # ==================================
 
 def apply_own_car_rule(df):
-
     df = df.copy()
-
     df.loc[
         (df["FLAG_OWN_CAR"] == "N")
         & (df["OWN_CAR_AGE"].notnull()),
         "OWN_CAR_AGE"
     ] = 0
-
     return df
 
 # ==================================
-# UI
+# UI / Header
 # ==================================
 
 st.title("🏦 Loan Default Prediction Analytics")
-
 st.markdown(
     "Upload a customer portfolio CSV file below to instantly evaluate credit risk and default probabilities."
 )
 st.write("---")
 
+# ==================================
+# File Upload Section
+# ==================================
 
 uploaded_file = st.file_uploader(
-        "Upload customer data file (CSV format)",
-        type=["csv"]
-    )
+    "Choose a customer data file (CSV format)",
+    type=["csv"],
+    help="Ensure columns match the training dataset schema before uploading."
+)
 
 if uploaded_file:
-
+    # Read and preview data
     df = pd.read_csv(uploaded_file)
-    st.write(df.head())
+    
+    with st.expander("📄 View Uploaded Raw Data Preview", expanded=False):
+        st.dataframe(df, use_container_width=True)
 
     try:
+        # Preprocessing & Predictions
+        df = apply_own_car_rule(df)
+        X = preprocessor.transform(df)
 
-            df = apply_own_car_rule(df)
+        probs = model.predict(X, verbose=0).flatten()
+        preds = (probs >= threshold).astype(int)
 
-            X = preprocessor.transform(df)
+        # Build results DataFrame
+        result = df.copy()
+        result["Default_Probability"] = probs
+        result["Prediction"] = np.where(
+            preds == 1,
+            "Risky",
+            "Pays Regularly"
+        )
 
-            probs = model.predict(
-                X,
-                verbose=0
-            ).flatten()
+        # Move critical target columns to the front
+        front_cols = ["Default_Probability", "Prediction"]
+        other_cols = [col for col in result.columns if col not in front_cols]
+        result = result[front_cols + other_cols]
 
-            preds = (
-                probs >= threshold
-            ).astype(int)
-
-            result = df.copy()
-
-            result["Default_Probability"] = probs
-
-            result["Prediction"] = np.where(
-                preds == 1,
-                "Risky",
-                "Pays Regularly"
-            )
-
-            front_cols = ["Default_Probability", "Prediction"]
-            other_cols = [col for col in result.columns if col not in front_cols]
-
-            result = result[front_cols + other_cols]
+        st.success("🎉 Prediction Pipeline Executed Successfully!")
+        st.write("---")
 
         # ==================================
         # Executive Summary Metrics Dashboard
